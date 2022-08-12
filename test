@@ -1,0 +1,1 @@
+sudo docker run -v $(pwd):/ncc ncc-env _ $@
