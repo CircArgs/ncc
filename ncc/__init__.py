@@ -2,6 +2,8 @@ import argparse
 import os
 
 from ncc.lexer import lexer
+from ncc.parser import parse
+from ncc.generate import generate
 
 
 def main():
@@ -12,7 +14,9 @@ def main():
     args = parser.parse_args()
     args.out = args.out or ".".join(args.file.split(".")[:-1])
     args.out += ".s"
-    lexer(args)
+    tokens = lexer(args)
+    ast = parse(tokens)
+    generate(ast, args)
     os.system(f"gcc -m32 {args.out} -o {'.'.join(args.out.split('.')[:-1])}")
     if args.clean:
         os.remove(args.out)

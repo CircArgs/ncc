@@ -1,17 +1,26 @@
-from collections import namedtuple
+from dataclasses import dataclass
 from enum import Enum
-
+import re
 import parsy
 
 
-class Keyword(Enum):
-    Int = "int"
-    Return = "return"
+class Token:
+    @classmethod
+    def parser(cls, name):
+        return parsy.string(getattr(cls, name).value)
+
+
+class Keyword(Token, Enum):
+    Return = "return "
     If = "if"
     For = "for"
 
 
-class Operator(Enum):
+class KeywordType(Token, Enum):
+    Int = "int"
+
+
+class Operator(Token, Enum):
     Eq = "=="
     Lt = "<"
     Gt = ">"
@@ -23,7 +32,7 @@ class Operator(Enum):
     Minus = "-"
 
 
-class BitwiseOperator(Enum):
+class BitwiseOperator(Token, Enum):
     Eq = "=="
     Xor = "^"
     Not = "~"
@@ -31,63 +40,79 @@ class BitwiseOperator(Enum):
     Or = "|"
 
 
-class Parens(Enum):
+class Parens(Token, Enum):
     Left = "("
     Right = ")"
 
 
-class Brackets(Enum):
+class Brackets(Token, Enum):
     Left = "{"
     Right = "}"
 
 
-Ident = namedtuple("Ident", "value")
-Number = namedtuple("Number", "value")
-Assign = namedtuple("Assign", [])
-Semicolon = namedtuple("Semicolon", [])
+@dataclass
+class Ident(Token):
+    value: str
+
+
+@dataclass
+class Number(Token):
+    value: str
+
+
+@dataclass
+class Assign(Token):
+    ...
+
+
+@dataclass
+class Semicolon(Token):
+    ...
+
 
 space = parsy.regex(r"\s+")
 padding = parsy.regex(r"\s*")
-keyword = parsy.from_enum(Keyword) << space
-paren = parsy.from_enum(Parens)
-bracket = parsy.from_enum(Brackets)
-semicolon = parsy.string(";").map(lambda _: Semicolon())
-ident = parsy.regex(r"[a-zA-Z_][0-9a-zA-Z_]*").map(Ident)
-number = parsy.regex(r"[0-9]+").map(int).map(Number)
-assign = parsy.string("=").map(lambda _: Assign())
-operator = parsy.from_enum(Operator)
-binary_operator = parsy.from_enum(BitwiseOperator)
 
-parser = keyword | ident | number | paren | bracket | semicolon | operator | binary_operator | assign
+
+class Tokens:
+    keyword = parsy.from_enum(Keyword)
+    keyword_type = parsy.from_enum(KeywordType)
+    paren = parsy.from_enum(Parens)
+    bracket = parsy.from_enum(Brackets)
+    semicolon = parsy.string(";").result(Semicolon())
+    ident = parsy.regex(r"[a-zA-Z_][0-9a-zA-Z_]*").desc("identifier").map(Ident)
+    number = parsy.regex(r"[0-9]+").desc("number").map(Number)
+    assign = parsy.string("=").result(Assign())
+    operator = parsy.from_enum(Operator)
+    binary_operator = parsy.from_enum(BitwiseOperator)
+
+    parser = (
+        keyword_type
+        | keyword
+        | ident
+        | number
+        | paren
+        | bracket
+        | semicolon
+        | binary_operator
+        | operator
+        | assign
+    )
 
 
 def lex(s):
     while s:
-        token, rest = parser.parse_partial(s)
-        if rest != s:
+        s = s.strip()
+        try:
+            token, rest = Tokens.parser.parse_partial(s)
             s = rest.strip()
-        else:
-            raise ValueError(f"failed to parse stream '{rest}'")
+        except:
+            raise ValueError(f"failed to parse at '{rest}'")
         yield token
 
 
-assembly_format = """
-.globl main
-main:
-    movl    ${}, %eax
-    ret
-"""
-
-
 def lexer(args):
-    with open(args.file, "r") as infile, open(args.out, "w") as outfile:
-        source = infile.read().strip()
-        token_stream = lex(source)
-        print(list(lex(source)))
-        # extract the named "ret" group, containing the return value
-        for token in token_stream:
-            if token == Keyword.Return:
-                break
-        retval = next(token_stream)
-        assert isinstance(retval, Number)
-        outfile.write(assembly_format.format(retval.value))
+    with open(args.file, "r") as infile:
+        infile = infile.read()
+        infile = re.sub(r"\s+", " ", infile)
+        return lex(infile)

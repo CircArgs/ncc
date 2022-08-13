@@ -6,7 +6,7 @@ authors = ["nick ouellet <nick@ouellet.dev>"]
 license = "mit"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 parsy = "^1.4.0"
 
 [tool.poetry.dev-dependencies]
