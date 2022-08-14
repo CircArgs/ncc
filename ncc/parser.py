@@ -5,21 +5,26 @@ from ncc.lexer import *
 
 TokenStream = Iterable[Token]
 
+
 @dataclass
 class LogicalNot:
     value: Number
+
 
 @dataclass
 class BitwiseNot:
     value: Number
 
+
 @dataclass
-class Minus:
+class Negate:
     value: Number
+
 
 @dataclass
 class Return:
     value: Number
+
 
 @dataclass
 class Function:
@@ -43,12 +48,12 @@ def parse(tokens: TokenStream):
         case [Operator.Not, *rest]:
             return LogicalNot(parse(rest))
         case [Operator.Minus, *rest]:
-            return Minus(parse(rest)) 
+            return Negate(parse(rest))
         case [BitwiseOperator.Not, *rest]:
-            return BitwiseNot(parse(rest))       
+            return BitwiseNot(parse(rest))
         case [
             KeywordType.Int,
-            Ident('main'),
+            Ident("main"),
             Parens.Left,
             Parens.Right,
             Brackets.Left,
@@ -57,7 +62,7 @@ def parse(tokens: TokenStream):
             Semicolon,
             Brackets.Right,
         ]:
-            main = Function(Ident('main'), KeywordType.Int, Return(parse(rest)))
+            main = Function(Ident("main"), KeywordType.Int, Return(parse(rest)))
             return Program(main)
         case _:
             raise Exception("Failed to Parse")

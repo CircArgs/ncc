@@ -30,7 +30,7 @@ class Operator(Token, Enum):
     Or = "||"
     Plus = "+"
     Minus = "-"
-    Not = '!'
+    Not = "!"
 
 
 class BitwiseOperator(Token, Enum):

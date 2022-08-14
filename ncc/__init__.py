@@ -16,7 +16,7 @@ def main():
     args.out += ".s"
     tokens = lexer(args)
     ast = parse(tokens)
-    print(ast)
+    # print(ast)
     # assert False
     generate(ast, args)
     os.system(f"gcc -m32 {args.out} -o {'.'.join(args.out.split('.')[:-1])}")
