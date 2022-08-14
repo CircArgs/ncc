@@ -28,18 +28,18 @@ def walk(ast, state: State):
         case Number(value):
             state.insert(f'movl ${value}, %eax')
         case Negate(value):
-            state.insert('''//{n}
+            state.insert('''
                     neg %eax''')
             walk(value, state)
         case LogicalNot(value):
-            state.insert(f'''//{n} 
+            state.insert(f''' 
                 cmpl $0, %eax
                 movl $0, %eax
                 sete %al
                     ''')
             walk(value, state)
         case BitwiseNot(value):
-            state.insert(f'''//{n} 
+            state.insert(f''' 
                 cmpl $0, %eax
                 notl %eax
                     ''')

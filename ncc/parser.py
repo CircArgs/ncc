@@ -41,28 +41,27 @@ class Program:
 
 def parse(tokens: TokenStream):
     tokens = list(tokens)
-    # print("*" * 25, "\n", tokens, "\n", "*" * 25)
-    match tokens:
-        case [n as Number]:
-            return n
-        case [Operator.Not, *rest]:
-            return LogicalNot(parse(rest))
-        case [Operator.Minus, *rest]:
-            return Negate(parse(rest))
-        case [BitwiseOperator.Not, *rest]:
-            return BitwiseNot(parse(rest))
-        case [
-            KeywordType.Int,
-            Ident("main"),
-            Parens.Left,
-            Parens.Right,
-            Brackets.Left,
-            Keyword.Return,
-            *rest,
-            Semicolon,
-            Brackets.Right,
-        ]:
-            main = Function(Ident("main"), KeywordType.Int, Return(parse(rest)))
-            return Program(main)
-        case _:
-            raise Exception("Failed to Parse")
+    if tokens:
+        match tokens:
+            case [Number() as n]:
+                return n
+            case [Operator.Not, *rest]:
+                return LogicalNot(parse(rest))
+            case [Operator.Minus, *rest]:
+                return Negate(parse(rest))
+            case [BitwiseOperator.Not, *rest]:
+                return BitwiseNot(parse(rest))
+            case [
+                KeywordType.Int,
+                Ident("main"),
+                Parens.Left,
+                Parens.Right,
+                Brackets.Left,
+                Keyword.Return,
+                *rest,
+                Semicolon,
+                Brackets.Right,
+            ]:
+                main = Function(Ident("main"), KeywordType.Int, Return(parse(rest)))
+                return Program(main)
+    raise Exception("Failed to Parse")

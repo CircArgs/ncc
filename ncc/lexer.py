@@ -115,5 +115,6 @@ def lex(s):
 def lexer(args):
     with open(args.file, "r") as infile:
         infile = infile.read()
+        # print(infile)
         infile = re.sub(r"\s+", " ", infile)
         return lex(infile)
